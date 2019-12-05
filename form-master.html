@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="/assets/styles/intlTelInput.css">
+<script src="/assets/js/intlTelInput.js"></script>
+<script>
+    jQuery(function($) {
+        $(function() {
+            // if input/select is focus state, add class to label, else remove class
+            $('input:not([type="tel"]),select').on("focus", function(){
+                $(this).siblings("label").addClass("focused");
+                $(this).addClass("focused");
+            });
+            $('input:not([type="tel"]),select').on("blur", function(){
+                if((!$(this).val() == '')) {
+                } else {
+                $(this).siblings("label").removeClass("focused");
+                $(this).removeClass("focused");
+                }
+            });
+            $('input[type="tel"]').on("focus", function(){
+                $(this).parent().siblings("label").addClass("focused");
+                $(this).siblings(".flag-container").css("z-index","200");
+                $("input[type='tel']").addClass("active");
+            });
+
+            // if label is clicked, add focused class and remove focused class from others
+            $('label').click(function(){
+                $(this).siblings('input:not([type="tel"]),select').focus();
+                $(this).siblings('div.intl-tel-input').find('input').focus();
+            })
+
+            // autofocus first visible input
+            $('form:first *:input[type!=hidden]:first').focus();
+            
+            // get the country data from the plugin
+            var countryData = $.fn.intlTelInput.getCountryData(),
+                telInput = $("#phone-input"),
+                phoneCountry = $("#phonecountry-input"),
+                phoneCountryNumerical = $("#phonecountrynumerical-input");
+            
+            // // hide the country and dialcode
+            // var hiddenRows = $("#phonecountry-input, #phonecountrynumerical-input").closest(".mktoFormRow").css("display","none");
+            
+            // init plugin
+            telInput.intlTelInput({
+                autoHideDialCode: true,
+                nationalMode: true,
+                utilsScript: "/assets/js/utils.js" // just for formatting/placeholders etc
+            });
+            
+            // populate the country dropdown
+            $.each(countryData, function(i, country) {
+                phoneCountry.append($("<option></option>").attr("value", country.name).text(country.name));
+                phoneCountryNumerical.append($("<option></option>").attr("value", country.dialCode).text(country.dialCode));
+            });
+            
+            // set it's initial value
+            var initialCountry = telInput.intlTelInput("getSelectedCountryData").name;
+            var initialCountryNum = telInput.intlTelInput("getSelectedCountryData").dialCode;
+            phoneCountry.val(initialCountry);
+            phoneCountryNumerical.val(initialCountryNum);
+        
+            // listen to the telephone input for changes
+            telInput.on("countrychange", function(e, countryData) {
+                phoneCountry.val(countryData.name);
+                phoneCountryNumerical.val(countryData.dialCode);
+            });
+        
+            // change phone value to international number on submit
+            $("form").onSubmit(function() {
+                var intlNumber = telInput.intlTelInput("getNumber");
+                telInput.val(intlNumber);
+            });
+        })
+    })
+</script>
